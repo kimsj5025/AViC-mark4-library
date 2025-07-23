@@ -1,0 +1,17 @@
+{
+    "name": "AViC mark4",
+    "keywords": "AViC mark4",
+    "description": "",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kimsj5025/AViC-mark4-Library"
+    },
+    "version": "0.1",
+    "exclude": "tests",
+    "examples": "examples/*/*.ino",
+    "frameworks": "arduino",
+    "platforms": [
+        "atmelavr",
+        "espressif"
+    ]
+}
