@@ -1,11 +1,13 @@
-#include<AViC>
+#include<AViC.h>
+#include "Arduino.h"
 
+AViC avic;
 
 void setup(){
-  initialize(true);
+  avic.initialize(true);
 }
 
 void loop(){
-  ledSW();
-  delay(100);
+  avic.ledSW(50);
+  delay(1000);
 }

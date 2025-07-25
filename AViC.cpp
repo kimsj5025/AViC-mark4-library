@@ -14,11 +14,6 @@ double TEMP;
 double P;
 
 
-/**
- * @brief AViC 보드의 핀들을 초기화 합니다.
- * 반드시 setup() 함수 안쪽에서 실행하세요
- */
-
 // MS5607의 PROM에서 C1~C6 보정 계수를 읽어오는 함수
 bool readPROMCoefficients() {
   Serial.println("Reading MS5607 PROM Coefficients C1-C6...");
@@ -44,50 +39,57 @@ bool readPROMCoefficients() {
 }
 
 
+/**
+ * @brief AViC 보드의 핀들을 초기화 합니다.
+ * 반드시 setup() 함수 안쪽에서 실행하세요
+ * 
+ * @param - True일 경우 3번의 비프음이 들립니다.
+ * 처음 비프음은 I2C 초기화 후,
+ * 두번째 비프음은 MS5607 보정계수를 읽은 후,
+ * 마지막 비프음은 ICM-45686 라이브러리 초기화 후 울립니다.
+ */
 void AViC::initialize(bool beep) {
 
   Wire.begin(I2C_SDA, I2C_SCL);
   Wire.setClock(100000); // I2C 속도를 400kHz로 설정 (센서들이 지원하는 일반적인 속도)
 
 
-  if(beep == true){
-    playTone(NOTE_C, 200);
-    playTone(NOTE_E, 200);
-    playTone(NOTE_G, 200);
-  }
+  if(beep == true)  playTone(NOTE_C, 200);
+  
   
   // MS5607 PROM에서 보정 계수 읽기
   if (!readPROMCoefficients()) {
-    Serial.println("Failed to read PROM coefficients from MS5607. Halting.");
+    Serial.println("보정계수를 읽는데 실패했습니다. 대기합니다..");
     while (1);
-  } else {
-    Serial.println("Successfully read MS5607 PROM coefficients.");
   }
 
+  if(beep == true)  playTone(NOTE_E, 200);
+  
   // IMU 초기화
   if (imu.begin() != 0) {
-    Serial.println("IMU initialization failed. Halting.");
+    Serial.println("IMU 초기화에 실패했습니다. 대기합니다..");
     while (1);
   }
 
   // 가속도계 시작 (ODR=100Hz, FSR=16g)
   if (imu.startAccel(100, 16) != 0) {
-    Serial.println("Failed to start accelerometer.");
+    Serial.println("가속도계 초기화에 실패했습니다.");
   }
 
   // 자이로스코프 시작 (ODR=100Hz, FSR=2000dps)
   if (imu.startGyro(100, 2000) != 0) {
-    Serial.println("Failed to start gyroscope.");
+    Serial.println("자이로스코프 초기화에 실패했습니다.");
   }
 
-  Serial.println("ICM45686 and MS5607 initialized. Starting measurements...");
+  
+  if(beep == true)  playTone(NOTE_G, 200);
 
-  pinMode(IGNITE_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
 
-  digitalWrite(IGNITE_PIN, LOW); // Default to off
-  digitalWrite(LED_PIN, HIGH);   // Default to on
-  isLedOn = true;
+  for(int i = 0; i<4; i++){
+    pinMode(i + 7, OUTPUT);
+    digitalWrite(i + 7, LOW); // Default to off
+  }
 }
 
 /**
@@ -103,8 +105,7 @@ void AViC::ledSW(int brightness) {
 }
 
 /**
- * @brief Toggles the state of the LED.
- * If the LED is on, it turns it off. If it's off, it turns it on.
+ * @brief 부저를 재생합니다.
  * @param freq - 재생할 음의 주파수 입니다.
  * @param duration - 재생 시간 입니다.
  */
@@ -154,7 +155,10 @@ void AViC::PyroOff(int num){
   digitalWrite(num, LOW);
 }
 
-
+/**
+ * @brief ICM-45686 센서 데이터를 읽습니다.
+ * getAcceleData(), getGyroData() 함수를 이용해 값을 사용할 수 있습니다.
+ */
 void AViC::readAcceleData(){
   
     inv_imu_sensor_data_t imu_data;
@@ -171,7 +175,10 @@ void AViC::readAcceleData(){
 
 }
 
-
+/**
+ * @brief MS5607 센서 데이터를 읽습니다.
+ * getBaroData() 함수를 이용해 값을 사용할 수 있습니다.
+ */
 void AViC::readBaroData(){
   // 1. 압력 변환 요청 (D1)
   Wire.beginTransmission(MS5607_ADDRESS);
@@ -282,20 +289,20 @@ float AViC::getMagnetData(int aixs){
 }
 
 void AViC::printSensorData(){
-  Serial.println("가속도 X Y Z");
+  Serial.println("가속도 X Y Z (m/s)");
   Serial.println(getAcceleData(0));
   Serial.println(getAcceleData(1));
   Serial.println(getAcceleData(2));
   Serial.println();
-  Serial.println("자이로 X Y Z");
+  Serial.println("자이로 X Y Z (degree/s)");
   Serial.println(getGyroData(0));
   Serial.println(getGyroData(1));
   Serial.println(getGyroData(2));
   Serial.println();
-  Serial.println("가속도계 온도");
+  Serial.println("가속도계 온도 (c)");
   Serial.println(getGyroData(3));
   Serial.println();
-  Serial.println("기압 , 온도");
+  Serial.println("온도 (c), 기압(hPa)");
   Serial.println(getBaroData(0));
   Serial.println(getBaroData(1));
   Serial.println("-------------");
