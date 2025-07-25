@@ -40,20 +40,24 @@ public:
     int I2C_SDA = 5;
     int I2C_SCL = 6;
 
-    // --- Constructor ---
-    AViC();
     
     // --- Public Methods ---
     void initialize(bool beep = false); // Call this in setup() to configure the pins
-    void ledSW();
+    void ledSW(int brightness);
     void playTone(int freq = 1047, int duration = 200);
     void Waring(int times);
     void PyroON(int num);
     void PyroOff(int num);
 
-    void getAcceleData();
-    void getMagnetData();
-    void getBaroData();
+    float getAcceleData(int aixs);
+    float getGyroData(int aixs);
+    float getMagnetData(int aixs);
+    float getBaroData(int aixs);
+    void printSensorData();
+
+    void readAcceleData();
+    void readMagnetData();
+    void readBaroData();
     
 private:
     // --- Private Member Variables ---
