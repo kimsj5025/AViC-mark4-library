@@ -1,6 +1,5 @@
 #include "AViC.h"
 #include "ICM45686.h"
-// --- Public Methods ---
 
 #define ICM_ADDRESS_LSB 0
 #define MS5607_ADDRESS 0x76  // MS5607 기압계 모듈의 I2C 주소
@@ -180,11 +179,11 @@ void AViC::readAcceleData(){
  * getBaroData() 함수를 이용해 값을 사용할 수 있습니다.
  */
 void AViC::readBaroData(){
-  // 1. 압력 변환 요청 (D1)
+  
   Wire.beginTransmission(MS5607_ADDRESS);
-  Wire.write(0x48);  // OSR=4096 압력 변환 명령
+  Wire.write(0x40); 
   Wire.endTransmission();
-  delay(10); // 데이터시트상 변환 시간은 약 9.04ms
+  delay(1); 
 
   // 2. 압력 값 읽기
   Wire.beginTransmission(MS5607_ADDRESS);
@@ -199,9 +198,9 @@ void AViC::readBaroData(){
 
   // 3. 온도 변환 요청 (D2)
   Wire.beginTransmission(MS5607_ADDRESS);
-  Wire.write(0x58);  // OSR=4096 온도 변환 명령
+  Wire.write(0x50);  
   Wire.endTransmission();
-  delay(10); // 데이터시트상 변환 시간은 약 9.04ms
+  delay(1); // 데이터시트상 변환 시간은 약 9.04ms
 
   // 4. 온도 값 읽기
   Wire.beginTransmission(MS5607_ADDRESS);
@@ -240,10 +239,9 @@ void AViC::readBaroData(){
     OFF -= OFF2;
     SENS -= SENS2;
   }
-  // ★★★★★ 보정 완료 ★★★★★
 
   P = (((int64_t)D1 * SENS) / 2097152.0 - OFF) / 32768.0;
-};
+}
 
 /**
  * @brief 가속도 데이터를 가져옵니다.
@@ -307,6 +305,7 @@ void AViC::printSensorData(){
   Serial.println(getBaroData(1));
   Serial.println("-------------");
 }
+
 /*
 추가할 기능들
 
